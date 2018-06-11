@@ -1,7 +1,13 @@
-FROM ubuntu:xenial
+FROM ubuntu:bionic
 
-RUN apt-get -y update && \
-    apt-get -qqy --no-install-recommends install \
+RUN apt-get -y update
+
+# Prepare tz
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+
+
+RUN apt-get -qqy --no-install-recommends install \
     git \
     sudo \
     python2.7 \
@@ -23,7 +29,8 @@ RUN apt-get -y update && \
     dnsutils \
     pulseaudio \
     libopus-dev \
-    gstreamer1.0
+    gstreamer-1.0
+
 
 # sudo
 RUN useradd browser --shell /bin/bash --create-home \
@@ -43,6 +50,10 @@ RUN apt-get -qqy --no-install-recommends install \
     fonts-liberation \
     fonts-arphic-bkai00mp fonts-arphic-bsmi00lp fonts-arphic-gbsn00lp fonts-arphic-gkai00mp fonts-arphic-ukai fonts-farsiweb fonts-nafees fonts-sil-abyssinica fonts-sil-ezra fonts-sil-padauk fonts-unfonts-extra fonts-unfonts-core fonts-indic fonts-thai-tlwg fonts-lklug-sinhala \
   && rm -rf /var/lib/apt/lists/*
+
+# fix module-console-kit for opus
+RUN sed -i '/load-module module-console-kit/s/^/#/' /etc/pulse/default.pa
+
 
 WORKDIR /app/
 
