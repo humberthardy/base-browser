@@ -18,7 +18,7 @@ if [[ "$AUDIO_TYPE" == "opus" ]]; then
 elif [[ "$AUDIO_TYPE" == "raw" ]]; then
     echo "Starting PCM WS Audio"
 
-    run_browser /app/ffmpeg -re -f pulse -i default -ac 1 -ab 64k -ar 44100 -listen 1 -f u8 tcp://0.0.0.0:4720 > /tmp/ffmpeg.log 2>&1 &
+    run_forever /app/ffmpeg -re -f pulse -i default -ac 1 -ab 64k -ar 44100 -listen 1 -f u8 tcp://0.0.0.0:4720 > /tmp/ffmpeg.log 2>&1 &
 
     uwsgi --http-socket :6082 --gevent 4 --wsgi-file /app/audio_proxy.py &
 fi
