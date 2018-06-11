@@ -29,7 +29,8 @@ RUN apt-get -qqy --no-install-recommends install \
     dnsutils \
     pulseaudio \
     libopus-dev \
-    gstreamer-1.0
+    gstreamer-1.0 \
+    gstreamer1.0-tools
 
 
 # sudo
