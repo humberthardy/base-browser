@@ -10,11 +10,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && ln -fs /usr/shar
 RUN apt-get -qqy --no-install-recommends install \
     git \
     sudo \
-    python2.7 \
-    python-pip \
-    python2.7-dev \
+    #python2.7 \
+    python3-pip \
+    python3-dev \
     build-essential \
-    python-openssl \
+    python3-openssl \
     libssl-dev libffi-dev \
     net-tools \
     libnss3-tools \
@@ -30,12 +30,12 @@ RUN apt-get -qqy --no-install-recommends install \
     pulseaudio \
     libopus-dev \
     gstreamer-1.0 \
-    gstreamer1.0-tools \ 
+    gstreamer1.0-tools \
     gstreamer1.0-alsa \
-    gstreamer1.0-nice \ 
+    gstreamer1.0-nice \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad 
+    gstreamer1.0-plugins-bad
 
 
 
@@ -55,8 +55,22 @@ RUN apt-get -qqy --no-install-recommends install \
     xfonts-scalable \
     xfonts-base \
     fonts-liberation \
-    fonts-arphic-bkai00mp fonts-arphic-bsmi00lp fonts-arphic-gbsn00lp fonts-arphic-gkai00mp fonts-arphic-ukai fonts-farsiweb fonts-nafees fonts-sil-abyssinica fonts-sil-ezra fonts-sil-padauk fonts-unfonts-extra fonts-unfonts-core fonts-indic fonts-thai-tlwg fonts-lklug-sinhala \
-  && rm -rf /var/lib/apt/lists/*
+    fonts-arphic-bkai00mp \
+    fonts-arphic-bsmi00lp \
+    fonts-arphic-gbsn00lp \
+    fonts-arphic-gkai00mp \
+    fonts-arphic-ukai \
+    fonts-farsiweb \
+    fonts-nafees \
+    fonts-sil-abyssinica \
+    fonts-sil-ezra \
+    fonts-sil-padauk \
+    fonts-unfonts-extra \
+    fonts-unfonts-core \
+    fonts-indic \
+    fonts-thai-tlwg \
+    fonts-lklug-sinhala
+
 
 # fix module-console-kit for opus
 RUN sed -i '/load-module module-console-kit/s/^/#/' /etc/pulse/default.pa
@@ -68,15 +82,21 @@ COPY requirements.txt /app/
 
 COPY jwmrc /home/browser/.jwmrc
 
-RUN pip install -U setuptools pip
+RUN pip3 install -U setuptools pip
 
-RUN pip install -U -r requirements.txt
+RUN pip3 install -U -r requirements.txt
+
+
 
 ADD run_browser /usr/bin/run_browser
 
 #ADD ffmpeg3.2.tar.gz /app/
-COPY audio_proxy.py /app/audio_proxy.py
-COPY audio_stream.sh /app/audio_stream.sh
+COPY audio/audio_proxy.py /app/audio_proxy.py
+COPY audio/audio_stream.sh /app/audio_stream.sh
+COPY audio/webrtc-send-webrecorder /app/webrtc-send-webrecorder
+
+
+
 
 COPY entry_point.sh /app/entry_point.sh
 
@@ -95,5 +115,8 @@ ENV PROXY_PORT 8080
 ENV PROXY_GET_CA http://mitm.it/cert/pem
 ENV IDLE_TIMEOUT ""
 ENV AUDIO_TYPE ""
+
+
+RUN rm -rf /var/lib/apt/lists/*
 
 CMD /app/entry_point.sh

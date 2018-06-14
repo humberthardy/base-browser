@@ -1,15 +1,5 @@
 #!/bin/bash
 
-
-function run_forever() {
-    while 'true'
-    do
-      echo "Execute '$@'"
-      "$@"
-      sleep 0.2
-    done
-}
-
 export GEOMETRY="$SCREEN_WIDTH""x""$SCREEN_HEIGHT""x""$SCREEN_DEPTH"
 
 mkdir -p ~/.vnc 
