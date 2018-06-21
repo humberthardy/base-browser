@@ -20,6 +20,13 @@ case "$AUDIO_TYPE" in
          ;;
     "webrtc")
          echo "Starting WebRTC Audio"
-         run_forever /app/webrtc-send-webrecorder --server $SIGNALLING_SERVER --peer-id $REQUEST_ID
+         OTHER_ARGS=""
+         if [ -n "${WEBRTC_STUN_SERVER}" ]; then
+           OTHER_ARGS="${OTHER_ARGS} --stun-server ${WEBRTC_STUN_SERVER}"
+         fi
+         if [ -n "${WEBRTC_TURN_SERVER}" ]; then
+           OTHER_ARGS="${OTHER_ARGS} --turn-server ${WEBRTC_TURN_SERVER}"
+         fi
+         run_forever /app/webrtc-send-webrecorder --signaling-server $WEBRTC_SIGNALING_SERVER --peer-id $REQUEST_ID ${OTHER_ARGS}
          ;;
 esac

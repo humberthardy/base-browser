@@ -44,13 +44,17 @@ static GstElement *pipe1, *webrtc1;
 static SoupWebsocketConnection *ws_conn = NULL;
 static enum AppState app_state = 0;
 static const gchar *peer_id = NULL;
-static const gchar *server_url = "wss://webrtc.nirbheek.in:8443";
+static const gchar *signaling_server;
+static const gchar *stun_server;
+static const gchar *turn_server;
 static gboolean strict_ssl = TRUE;
 
 static GOptionEntry entries[] =
 {
   { "peer-id", 0, 0, G_OPTION_ARG_STRING, &peer_id, "String ID of the peer to connect to", "ID" },
-  { "server", 0, 0, G_OPTION_ARG_STRING, &server_url, "Signalling server to connect to", "URL" },
+  { "signaling-server", 0, 0, G_OPTION_ARG_STRING, &signaling_server, "Signaling server to connect to", "URL" },
+  { "stun-server", 0, 0, G_OPTION_ARG_STRING, &stun_server, "Stun server, ex:stun://hostname:port", "" },
+  { "turn-server", 0, 0, G_OPTION_ARG_STRING, &turn_server, "Turn server, ex: turn://username:password@host:port", "" },
   { NULL },
 };
 
@@ -269,7 +273,6 @@ on_negotiation_needed (GstElement * element, gpointer user_data)
   g_signal_emit_by_name (webrtc1, "create-offer", NULL, promise);
 }
 
-#define STUN_SERVER " stun-server=stun://stun.l.google.com:19302  stun-server=stun://ststun.services.mozilla.com "
 #define RTP_CAPS_OPUS "application/x-rtp,media=audio,encoding-name=OPUS,payload="
 
 static gboolean
@@ -278,10 +281,27 @@ start_pipeline (void)
   GstStateChangeReturn ret;
   GError *error = NULL;
 
-pipe1 =
-      gst_parse_launch ("webrtcbin name=sendrecv " STUN_SERVER
-      "alsasrc buffer-time=128000 latency-time=32000  ! audioconvert  ! opusenc frame-size=2.5 ! "
-      "rtpopuspay ! queue max-size-time=20000 ! " RTP_CAPS_OPUS "97 ! sendrecv. ",
+  gchar * webrtcbin_cfg = "";
+
+  if (g_utf8_strlen(stun_server, -1) > 0) {
+     g_print("Add stun server");
+      webrtcbin_cfg = g_strconcat(webrtcbin_cfg, " stun-server=", stun_server, NULL);
+  }
+
+
+  if (g_utf8_strlen(turn_server, -1) > 0) {
+      g_print("Add Turn server");
+      webrtcbin_cfg = g_strconcat(webrtcbin_cfg, " turn-server=", turn_server, NULL);
+  }
+
+  gchar *pipeline_description = g_strdup_printf("webrtcbin name=sendrecv %s "
+                                      "alsasrc buffer-time=128000 latency-time=32000  ! audioconvert  ! opusenc frame-size=2.5 ! "
+                                      "rtpopuspay ! queue max-size-time=20000 ! " RTP_CAPS_OPUS "97 ! sendrecv. ", webrtcbin_cfg);
+
+  g_print("Pipeline description = %s", pipeline_description);
+
+  pipe1 =
+      gst_parse_launch (pipeline_description,
       &error);
 
   if (error) {
@@ -335,7 +355,7 @@ setup_call (void)
   if (!peer_id)
     return FALSE;
 
-  g_print ("Setting up signalling server call with %s\n", peer_id);
+  g_print ("Setting up signaling server call with %s\n", peer_id);
   app_state = PEER_CONNECTING;
   msg = g_strdup_printf ("SESSION %s", peer_id);
   soup_websocket_connection_send_text (ws_conn, msg);
@@ -575,7 +595,7 @@ connect_to_websocket_server_async (void)
   soup_session_add_feature (session, SOUP_SESSION_FEATURE (logger));
   g_object_unref (logger);
 
-  message = soup_message_new (SOUP_METHOD_GET, server_url);
+  message = soup_message_new (SOUP_METHOD_GET, signaling_server);
 
   g_print ("Connecting to server...\n");
 
@@ -634,7 +654,7 @@ main (int argc, char *argv[])
   /* Don't use strict ssl when running a localhost server, because
    * it's probably a test server with a self-signed certificate */
   {
-    GstUri *uri = gst_uri_from_string (server_url);
+    GstUri *uri = gst_uri_from_string (signaling_server);
     if (g_strcmp0 ("localhost", gst_uri_get_host (uri)) == 0 ||
         g_strcmp0 ("127.0.0.1", gst_uri_get_host (uri)) == 0)
       strict_ssl = FALSE;
