@@ -1,5 +1,14 @@
 #!/bin/bash
 
+function run_forever() {
+    while 'true'
+    do
+      echo "Execute '$@'"
+      "$@"
+      sleep 1
+    done
+}
+
 export GEOMETRY="$SCREEN_WIDTH""x""$SCREEN_HEIGHT""x""$SCREEN_DEPTH"
 
 mkdir -p ~/.vnc 
@@ -42,7 +51,7 @@ eval "$@" &
 autocutsel -s PRIMARY -fork
 
 # start vnc
-x11vnc -forever -ncache_cr -xdamage -usepw -shared -rfbport 5900 -display $DISPLAY > /dev/null 2>&1 &
+run_forever x11vnc -forever -ncache_cr -xdamage -usepw -shared -rfbport 5900 -display $DISPLAY > /dev/null 2>&1 &
 
 
 TIMEOUT_PARAM=""
