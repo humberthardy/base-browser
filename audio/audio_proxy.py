@@ -35,8 +35,8 @@ class AudioProxy(object):
         port = AudioProxy.PORT
         self.connected = True
         self.port = port
-        #self.buff_size = int(os.environ.get("OPUS_BUFFER_SIZE", 16384*4))
-        self.buff_size = int(os.environ.get("OPUS_BUFFER_SIZE", 16384*0.5))
+        self.buff_size = int(os.environ.get("OPUS_BUFFER_SIZE", 16384*4))
+        #self.buff_size = int(os.environ.get("OPUS_BUFFER_SIZE", 16384*0.5))
         self.audio_cmd = AudioProxy.AUDIO_CMD.format(**locals())
         self.proc = None
         AudioProxy.PORT = AudioProxy.PORT +1
