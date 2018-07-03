@@ -1,4 +1,5 @@
 from gevent import monkey; monkey.patch_all()
+import os
 import gevent
 import gevent.queue
 
@@ -27,22 +28,24 @@ def application(env, start_response):
 # ============================================================================
 class AudioProxy(object):
     PORT = 4720
-    AUDIO_CMD = 'gst-launch-1.0 -v alsasrc ! audio/x-raw, channels=2, rate=24000 ! cutter ! opusenc complexity=0 frame-size=2.5 ! webmmux ! tcpserversink port={0}'
+    AUDIO_CMD = 'gst-launch-1.0 -v alsasrc ! audio/x-raw, channels=2, rate={rate} ! cutter ! opusenc complexity=0 frame-size=2.5 ! webmmux ! tcpserversink port={port}'
 
     def __init__(self):
+        rate = os.environ.get("OPUS_RATE", "24000")
+        port = AudioProxy.PORT
         self.connected = True
-        self.buff_size = 16384*4
+        self.port = port
+        #self.buff_size = int(os.environ.get("OPUS_BUFFER_SIZE", 16384*4))
+        self.buff_size = int(os.environ.get("OPUS_BUFFER_SIZE", 16384*0.5))
+        self.audio_cmd = AudioProxy.AUDIO_CMD.format(**locals())
         self.proc = None
+        AudioProxy.PORT = AudioProxy.PORT +1
 
     def start_proc(self):
-        self.port = AudioProxy.PORT
+
         print('Starting Audio Server on Port {0}'.format(self.port))
         self.tcp_source = ('localhost', self.port)
-
-        args = self.AUDIO_CMD.format(self.port).split(' ')
-        self.proc = subprocess.Popen(args)
-
-        AudioProxy.PORT += 1
+        self.proc = subprocess.Popen(self.audio_cmd.split(' '))
 
     def get_audio_buff(self):
         while self.connected:
