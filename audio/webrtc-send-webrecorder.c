@@ -53,7 +53,7 @@ static GOptionEntry entries[] =
 {
   { "peer-id", 0, 0, G_OPTION_ARG_STRING, &peer_id, "String ID of the peer to connect to", "ID" },
   { "signaling-server", 0, 0, G_OPTION_ARG_STRING, &signaling_server, "Signaling server to connect to", "URL" },
-  { "stun-server", 0, 0, G_OPTION_ARG_STRING, &stun_server, "Stun server, ex:stun://hostname:port", "" },
+  { "stun-server", 0, 0, G_OPTION_ARG_STRING, &stun_server, "Stun server, ex: stun://hostname:port", "" },
   { "turn-server", 0, 0, G_OPTION_ARG_STRING, &turn_server, "Turn server, ex: turn://username:password@host:port", "" },
   { NULL },
 };

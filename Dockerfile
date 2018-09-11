@@ -35,7 +35,13 @@ RUN apt-get -qqy --no-install-recommends install \
     gstreamer1.0-nice \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad
+    gstreamer1.0-plugins-bad \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-good1.0-dev \
+    libgstreamer-plugins-bad1.0-dev \
+    libjson-glib-dev \
+    libsoup2.4-dev
 
 
 
@@ -86,17 +92,10 @@ RUN pip3 install -U setuptools pip
 
 RUN pip3 install -U -r requirements.txt
 
-
-
 ADD run_browser /usr/bin/run_browser
 
-#ADD ffmpeg3.2.tar.gz /app/
-COPY audio/audio_proxy.py /app/audio_proxy.py
-COPY audio/audio_stream.sh /app/audio_stream.sh
-COPY audio/webrtc-send-webrecorder /app/webrtc-send-webrecorder
-
-
-
+COPY /audio/* /app/
+RUN cd /app && make
 
 COPY entry_point.sh /app/entry_point.sh
 
